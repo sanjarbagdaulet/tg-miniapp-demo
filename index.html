@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TG Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #222);
+            margin: 0;
+            padding: 20px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px 20px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--tg-theme-button-color, #50a8eb);
+            color: var(--tg-theme-button-text-color, #fff);
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            display: none;
+            font-size: 14px;
+        }
+        #status.ok { background: #d4edda; color: #155724; }
+        #status.err { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+<h2>Mini App Demo</h2>
+<button onclick="App.sendHello()">Send «Hello, World!»</button>
+<div id="status"></div>
+
+<script>
+    const WORKER_URL = 'https://tg-miniapp-demo.sanjarbagdaulet.workers.dev';
+
+    const App = {
+        init() {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
+        },
+
+        async sendHello() {
+            const status = document.getElementById('status');
+            status.style.display = 'block';
+            status.className = '';
+            status.textContent = 'Sending...';
+
+            const user = Telegram.WebApp.initDataUnsafe?.user;
+            const chatId = user?.id;
+
+            if (!chatId) {
+                status.className = 'err';
+                status.textContent = 'Error: no user data (open inside Telegram)';
+                return;
+            }
+
+            try {
+                const res = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        method: 'sendMessage',
+                        chat_id: chatId,
+                        text: 'Hello, World!',
+                    }),
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    status.className = 'ok';
+                    status.textContent = 'Message sent!';
+                } else {
+                    status.className = 'err';
+                    status.textContent = 'Error: ' + data.description;
+                }
+            } catch (e) {
+                status.className = 'err';
+                status.textContent = 'Error: ' + e.message;
+            }
+        }
+    };
+
+    App.init();
+</script>
+
+</body>
+</html>
