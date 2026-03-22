@@ -34,13 +34,25 @@
         }
         #status.ok { background: #d4edda; color: #155724; }
         #status.err { background: #f8d7da; color: #721c24; }
+        #posters {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        #posters img {
+            width: 100%;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
 
 <h2>Mini App Demo</h2>
 <button onclick="App.sendHello()">Send «Hello, World!»</button>
+<button onclick="App.getPosters()">Дай 3 постера</button>
 <div id="status"></div>
+<div id="posters"></div>
 
 <script>
     const WORKER_URL = 'https://tg-miniapp-demo.sanjarbagdaulet.workers.dev';
@@ -83,6 +95,40 @@
                 } else {
                     status.className = 'err';
                     status.textContent = 'Error: ' + data.description;
+                }
+            } catch (e) {
+                status.className = 'err';
+                status.textContent = 'Error: ' + e.message;
+            }
+        },
+
+        async getPosters() {
+            const status = document.getElementById('status');
+            const postersDiv = document.getElementById('posters');
+
+            status.style.display = 'block';
+            status.className = '';
+            status.textContent = 'Loading...';
+            postersDiv.innerHTML = '';
+
+            try {
+                const res = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ method: 'getPosters' }),
+                });
+                const data = await res.json();
+
+                if (data.ok) {
+                    status.style.display = 'none';
+                    data.posters.forEach(url => {
+                        const img = document.createElement('img');
+                        img.src = url;
+                        postersDiv.appendChild(img);
+                    });
+                } else {
+                    status.className = 'err';
+                    status.textContent = 'Error: ' + data.error;
                 }
             } catch (e) {
                 status.className = 'err';

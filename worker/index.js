@@ -2,14 +2,12 @@ const ALLOWED_ORIGIN = 'https://sanjarbagdaulet.github.io';
 
 export default {
   async fetch(request, env) {
-    // CORS headers
     const corsHeaders = {
       'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     };
 
-    // Preflight
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
@@ -25,6 +23,17 @@ export default {
       if (method === 'sendMessage') {
         const result = await sendMessage(env.BOT_TOKEN, body);
         return new Response(JSON.stringify(result), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      if (method === 'getPosters') {
+        const posters = [
+          'https://image.tmdb.org/t/p/w500/wNEHNqo3MgHmj3BUiPSqqq5czcm.jpg',
+          'https://image.tmdb.org/t/p/w500/46xqGOwHbh2TH2avWSw3SMXph4E.jpg',
+          'https://image.tmdb.org/t/p/w500/lUtVoRukW7WNtUySwd8hWlByBds.jpg',
+        ];
+        return new Response(JSON.stringify({ ok: true, posters }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
